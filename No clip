@@ -11,35 +11,44 @@ game.StarterGui:SetCore("SendNotification", {
     Callback = NotificationBindable;
 })
 
-local player = game.Players.LocalPlayer
-local mouse = player:GetMouse()
-local noclip = false
-local noclipConnection
+-- No clip script toggled by the letter "L"
 
-function onNoclipToggle()
+local noclip = false
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local mouse = player:GetMouse()
+
+function toggleNoclip()
     noclip = not noclip
     if noclip then
-        print("NoClip Enabled")
-        noclipConnection = game:GetService("RunService").Stepped:Connect(function()
-            player.Character.Humanoid:ChangeState(11)
+        -- Make the character non-collidable
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+        game:GetService("RunService").Stepped:Connect(function()
+            if noclip then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
         end)
     else
-        print("NoClip Disabled")
-        if noclipConnection then
-            noclipConnection:Disconnect()
+        -- Restore character's collidability
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
         end
     end
 end
 
+-- Bind the toggle function to the "L" key
 mouse.KeyDown:Connect(function(key)
     if key:lower() == "l" then
-        onNoclipToggle()
+        toggleNoclip()
     end
-end)
-
-game:GetService("Players").PlayerAdded:Connect(function(newPlayer)
-    newPlayer.CharacterAdded:Connect(function(character)
-        character:WaitForChild("HumanoidRootPart")
-        onNoclipToggle()
-    end)
 end)
