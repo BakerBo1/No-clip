@@ -1,24 +1,32 @@
-local Noclip = nil
-local Clip = nil
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+local noclip = false
+local noclipConnection
 
-function noclip()
-	Clip = false
-	local function Nocl()
-		if Clip == false and game.Players.LocalPlayer.Character ~= nil then
-			for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-				if v:IsA('BasePart') and v.CanCollide and v.Name ~= floatName then
-					v.CanCollide = false
-				end
-			end
-		end
-		wait(0.21) -- basic optimization
-	end
-	Noclip = game:GetService('RunService').Stepped:Connect(Nocl)
+function onNoclipToggle()
+    noclip = not noclip
+    if noclip then
+        print("NoClip Enabled")
+        noclipConnection = game:GetService("RunService").Stepped:Connect(function()
+            player.Character.Humanoid:ChangeState(11)
+        end)
+    else
+        print("NoClip Disabled")
+        if noclipConnection then
+            noclipConnection:Disconnect()
+        end
+    end
 end
 
-function clip()
-	if Noclip then Noclip:Disconnect() end
-	Clip = true
-end
+mouse.KeyDown:Connect(function(key)
+    if key:lower() == "l" then
+        onNoclipToggle()
+    end
+end)
 
-noclip() -- to toggle noclip() and clip()
+game:GetService("Players").PlayerAdded:Connect(function(newPlayer)
+    newPlayer.CharacterAdded:Connect(function(character)
+        character:WaitForChild("HumanoidRootPart")
+        onNoclipToggle()
+    end)
+end)
