@@ -11,7 +11,7 @@ game.StarterGui:SetCore("SendNotification", {
     Callback = NotificationBindable;
 })
 
--- No clip script toggled by the letter "L" with notifications
+-- No clip script toggled by the letter "L" with notifications and re-initiation on respawn
 
 local noclip = false
 local player = game.Players.LocalPlayer
@@ -31,32 +31,26 @@ local function notify(title, text)
     })
 end
 
-function toggleNoclip()
+local function setNoclip(state)
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = not state
+        end
+    end
+end
+
+local function toggleNoclip()
     noclip = not noclip
     if noclip then
-        -- Make the character non-collidable
-        for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
+        setNoclip(true)
         game:GetService("RunService").Stepped:Connect(function()
             if noclip then
-                for _, part in pairs(character:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
-                    end
-                end
+                setNoclip(true)
             end
         end)
         notify("No-clip ON", "By @moonwalker.24")
     else
-        -- Restore character's collidability
-        for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = true
-            end
-        end
+        setNoclip(false)
         notify("No-clip OFF", "By @moonwalker.24")
     end
 end
@@ -65,5 +59,18 @@ end
 mouse.KeyDown:Connect(function(key)
     if key:lower() == "l" then
         toggleNoclip()
+    end
+end)
+
+-- Re-apply no-clip on character respawn
+player.CharacterAdded:Connect(function(char)
+    character = char
+    if noclip then
+        setNoclip(true)
+        game:GetService("RunService").Stepped:Connect(function()
+            if noclip then
+                setNoclip(true)
+            end
+        end)
     end
 end)
