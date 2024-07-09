@@ -11,12 +11,25 @@ game.StarterGui:SetCore("SendNotification", {
     Callback = NotificationBindable;
 })
 
--- No clip script toggled by the letter "L"
+-- No clip script toggled by the letter "L" with notifications
 
 local noclip = false
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local mouse = player:GetMouse()
+
+-- Create notification function using SetCore
+local function notify(title, text)
+    local NotificationBindable = Instance.new("BindableFunction")
+    NotificationBindable.OnInvoke = function() end
+    
+    game.StarterGui:SetCore("SendNotification", {
+        Title = title;
+        Text = text;
+        Duration = 5;
+        Callback = NotificationBindable;
+    })
+end
 
 function toggleNoclip()
     noclip = not noclip
@@ -36,6 +49,7 @@ function toggleNoclip()
                 end
             end
         end)
+        notify("No-clip ON", "By @moonwalker.24")
     else
         -- Restore character's collidability
         for _, part in pairs(character:GetDescendants()) do
@@ -43,6 +57,7 @@ function toggleNoclip()
                 part.CanCollide = true
             end
         end
+        notify("No-clip OFF", "By @moonwalker.24")
     end
 end
 
